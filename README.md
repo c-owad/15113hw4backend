@@ -1,3 +1,9 @@
+Used Gemini Pro for this.
+My backend is based off my previous HW project: it uses an API to find a series of points that can be used to plot 3D receptors/proteins. built w/ flask/python
+the frontend calls it using API_URL line in visualizer.html. the frontend also handles the graphical details: it is responsible for plotting the points that it retrieves from app.py.
+To run locally, install required modules (requirements.txt), change API_URL line in visualizer.html to const API_URL = "http://127.0.0.1:5000/api/molecule";
+run app.py, open visualizer.html from local location
+
 * can we just implement my last homework into my backend? the python code that makes an api call and dissects pdb files to display receptors
 * [Pasted Python Code: Neuro-Visualizer with Pygame, Requests, and Math logic]
 * im gonna put the frontend for this shi on a different page on my portfolio
