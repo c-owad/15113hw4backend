@@ -1,0 +1,13 @@
+* can we just implement my last homework into my backend? the python code that makes an api call and dissects pdb files to display receptors
+* [Pasted Python Code: Neuro-Visualizer with Pygame, Requests, and Math logic]
+* im gonna put the frontend for this shi on a different page on my portfolio
+* what should my backend requirements.txt contain, based off the code you just wrote for me
+* ==> Running 'web: gunicorn app:app' bash: line 1: web:: command not found ==> Exited with status 127
+* i got this link from render but it's not loading.. do i just need to wait a minute? https://one5113hw4backend.onrender.com/
+* wait should i just blindly put this link into my website visualizer.html file then?>
+* where does the api/molecule come from?
+* the visualizer and app is missing a lot of key functionality. there should be labels on the receptors. there should be zoom features, there should be different colored polygons on the receptors. there should be some sort of menu where you can select different proteins (because using the names according to the API is confusing and impossible for users to change the protein. and make the neurotransmitter interacting with the protein/receptor more realistic.
+* good work, but: 1) the side bar slightly overlaps the text to the right of it 2) nothing gets displayed except for labels and ligand
+* for the draw part, do i just replace the draw function? or more
+* the ligand animation is really really stupid. whys it jumping around like that?? cmon bruh
+* alright, compile all of my prompts from this chat into a list of bullets in a text file so i can submit it
