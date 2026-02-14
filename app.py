@@ -1,11 +1,20 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
 import requests
 
 app = Flask(__name__)
 CORS(app)
 
-# --- YOUR HOMEWORK LOGIC HERE ---
+# --- CONFIGURATION ---
+# We use this to center the molecule
+def get_center(points):
+    valid = [p for p in points if p is not None]
+    if not valid: return (0,0,0)
+    avg_x = sum(p['x'] for p in valid) / len(valid)
+    avg_y = sum(p['y'] for p in valid) / len(valid)
+    avg_z = sum(p['z'] for p in valid) / len(valid)
+    return (avg_x, avg_y, avg_z)
+
 class ProteinAPI:
     def __init__(self):
         self.base_url = "https://files.rcsb.org/download"
@@ -23,18 +32,21 @@ class ProteinAPI:
     def parse_backbone(self, text):
         backbone = []
         last_chain = None
+        
         for line in text.splitlines():
-            if line.startswith("ATOM") and line[12:16].strip() == "CA":
+            if line.startswith("ATOM") and line[12:16].strip() == "CA": # Alpha Carbon only
                 try:
                     chain_id = line[21]
-                    # If chain changes, add a "break" marker
-                    if last_chain is not None and chain_id != last_chain:
-                        backbone.append(None)
-                    
                     x = float(line[30:38].strip())
                     y = float(line[38:46].strip())
                     z = float(line[46:54].strip())
-                    backbone.append((x, y, z))
+                    
+                    # If chain changes, we insert a None to "break" the ribbon drawing
+                    if last_chain is not None and chain_id != last_chain:
+                        backbone.append(None)
+
+                    # We now return a DICTIONARY with chain info, not just a tuple
+                    backbone.append({"x": x, "y": y, "z": z, "chain": chain_id})
                     last_chain = chain_id
                 except:
                     continue
@@ -42,24 +54,15 @@ class ProteinAPI:
 
 api = ProteinAPI()
 
-# --- THE API ENDPOINT ---
 @app.route('/api/molecule/<pdb_id>')
 def get_molecule(pdb_id):
-    # Get the 3D points using your logic
     points = api.get_structure(pdb_id)
+    center = get_center(points)
     
-    # Calculate the center (for the frontend to center the camera)
-    valid_points = [p for p in points if p is not None]
-    if not valid_points:
-        return jsonify({"error": "No data found"}), 404
-        
-    avg_x = sum(p[0] for p in valid_points) / len(valid_points)
-    avg_y = sum(p[1] for p in valid_points) / len(valid_points)
-    avg_z = sum(p[2] for p in valid_points) / len(valid_points)
-
+    # Return the data
     return jsonify({
         "points": points,
-        "center": [avg_x, avg_y, avg_z]
+        "center": center
     })
 
 if __name__ == '__main__':
