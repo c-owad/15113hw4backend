@@ -19,7 +19,7 @@ def get_center(points):
 class ProteinAPI:
     def __init__(self):
         self.pdb_url = "https://files.rcsb.org/download"
-        self.chem_api_url = "https://data.rcsb.org/rest/v1/core/chem_comp"
+        self.chem_api_url = "https://data.rcsb.org/rest/v1/core/chemcomp"
 
     def fetch_raw_pdb(self, pdb_id):
         url = f"{self.pdb_url}/{pdb_id}.pdb"
