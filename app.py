@@ -2,15 +2,20 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 import requests
 import math
-import os
 import google.generativeai as genai
+import os
+
 
 app = Flask(__name__)
 CORS(app)
 
-# Pulls the secret key you will paste into the Render dashboard
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
+print("Listing accessible models:")
+for m in genai.list_models():
+    if 'generateContent' in m.supported_generation_methods:
+        print(m.name)
+        
 # --- CONFIGURATION ---
 def get_center(points):
     # Filter out None values which are used as chain breaks
@@ -162,22 +167,24 @@ def analyze_ligand(pdb_id, ligand_key):
     interactions = api.find_binding_pocket(backbone, target_ligand["atoms"], threshold=6.0)
     
     # --- NEW: AI Agent Call ---
+    # --- NEW: AI Agent Call with 2026 compatibility ---
     ai_summary = "AI description currently unavailable."
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        prompt = f"You are a chemistry/medicine assistant. Write a concise (2 sentence) description of the biological function and/or clinical use of the molecule: {chem_info['name']}. Ensure it is factual."
+        # Use a newer 2026-stable model
+        model = genai.GenerativeModel('gemini-2.0-flash') 
+        
+        prompt = (
+            f"Context: Structural biology of neural receptors. "
+            f"Task: Write a concise, 2-sentence description of the biological function "
+            f"or clinical use of the molecule: {chem_info['name']}. "
+            f"Tone: Scientific and factual."
+        )
         
         response = model.generate_content(prompt)
         ai_summary = response.text.strip()
     except Exception as e:
-        print(f"AI API Error: {e}")
-
-    return jsonify({
-        "ligand_id": res_name,
-        "properties": chem_info,
-        "binding_pocket": interactions,
-        "ai_description": ai_summary # Added to the payload
-    })
+        # This will now show up in your Render logs so you can see the new error if it fails
+        print(f"AI API Error (2026 context): {e}")
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
