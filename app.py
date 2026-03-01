@@ -148,43 +148,54 @@ def get_molecule(pdb_id):
 # --- NEW ANALYTICS ROUTE ---
 @app.route('/api/analyze/<pdb_id>/<ligand_key>')
 def analyze_ligand(pdb_id, ligand_key):
-    raw_text = api.fetch_raw_pdb(pdb_id)
-    if not raw_text:
-        return jsonify({"error": "Structure not found"}), 404
-        
-    backbone, ligands = api.parse_pdb(raw_text)
-    
-    if ligand_key not in ligands:
-        return jsonify({"error": "Ligand not found in structure"}), 404
-        
-    target_ligand = ligands[ligand_key]
-    res_name = target_ligand["res_name"]
-    
-    # Meaningful API Call
-    chem_info = api.get_chem_info(res_name)
-    
-    # Substantial Data Analysis
-    interactions = api.find_binding_pocket(backbone, target_ligand["atoms"], threshold=6.0)
-    
-    # --- NEW: AI Agent Call ---
-    # --- NEW: AI Agent Call with 2026 compatibility ---
-    ai_summary = "AI description currently unavailable."
     try:
-        # Use a newer 2026-stable model
-        model = genai.GenerativeModel('gemini-2.0-flash') 
+        raw_text = api.fetch_raw_pdb(pdb_id)
+        if not raw_text:
+            return jsonify({"error": "Structure not found"}), 404
+            
+        backbone, ligands = api.parse_pdb(raw_text)
         
-        prompt = (
-            f"Context: Structural biology of neural receptors. "
-            f"Task: Write a concise, 2-sentence description of the biological function "
-            f"or clinical use of the molecule: {chem_info['name']}. "
-            f"Tone: Scientific and factual."
-        )
+        if ligand_key not in ligands:
+            return jsonify({"error": "Ligand not found in structure"}), 404
+            
+        target_ligand = ligands[ligand_key]
+        res_name = target_ligand["res_name"]
         
-        response = model.generate_content(prompt)
-        ai_summary = response.text.strip()
+        # 1. Fetch Chemical Info (Critical)
+        chem_info = api.get_chem_info(res_name)
+        
+        # 2. Run Pocket Analysis (Critical Math)
+        interactions = api.find_binding_pocket(backbone, target_ligand["atoms"], threshold=6.0)
+        
+        # 3. AI Agent Call (Optional/Non-Blocking)
+        # We move this into its own isolated try block
+        ai_summary = "The AI Agent is currently at its limit. Please try again in a moment."
+        try:
+            model = genai.GenerativeModel('gemini-2.0-flash')
+            prompt = (
+                f"Identify the molecule: {chem_info['name']} ({res_name}). "
+                f"Explain its biological role in this protein structure or its clinical "
+                f"relevance in 2 concise sentences."
+            )
+            response = model.generate_content(prompt)
+            if response and response.text:
+                ai_summary = response.text.strip()
+        except Exception as ai_err:
+            # If AI fails (Quota, Network, etc.), we just log it and move on
+            print(f"Non-fatal AI Error (likely Quota): {ai_err}")
+
+        # The 'Return' happens regardless of AI success
+        return jsonify({
+            "ligand_id": res_name,
+            "properties": chem_info,
+            "binding_pocket": interactions,
+            "ai_description": ai_summary
+        })
+
     except Exception as e:
-        # This will now show up in your Render logs so you can see the new error if it fails
-        print(f"AI API Error (2026 context): {e}")
+        # Only major math or PDB fetch failures trigger a 500 error
+        print(f"CRITICAL BACKEND ERROR: {e}")
+        return jsonify({"error": "Internal server error occurred"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
