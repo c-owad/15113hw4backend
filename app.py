@@ -2,9 +2,14 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 import requests
 import math
+import os
+import google.generativeai as genai
 
 app = Flask(__name__)
 CORS(app)
+
+# Pulls the secret key you will paste into the Render dashboard
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # --- CONFIGURATION ---
 def get_center(points):
@@ -156,10 +161,22 @@ def analyze_ligand(pdb_id, ligand_key):
     # Substantial Data Analysis
     interactions = api.find_binding_pocket(backbone, target_ligand["atoms"], threshold=6.0)
     
+    # --- NEW: AI Agent Call ---
+    ai_summary = "AI description currently unavailable."
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        prompt = f"You are a chemistry/medicine assistant. Write a concise (2 sentence) description of the biological function and/or clinical use of the molecule: {chem_info['name']}. Ensure it is factual."
+        
+        response = model.generate_content(prompt)
+        ai_summary = response.text.strip()
+    except Exception as e:
+        print(f"AI API Error: {e}")
+
     return jsonify({
         "ligand_id": res_name,
         "properties": chem_info,
-        "binding_pocket": interactions
+        "binding_pocket": interactions,
+        "ai_description": ai_summary # Added to the payload
     })
 
 if __name__ == '__main__':
