@@ -1,0 +1,12 @@
+meaningful prompts:
+"yo can we get render 6CM4 (and later more proteins) on a basic flask app? i want the protein backbone to look sleek, maybe a spectrum cartoon style. i want this to be similar to my previous project displaying proteins, but more robust and meaningful."
+"i need a python backend that doesn't just show the protein but actually parses the atoms. can we write a script to categorize them by ligand key?"
+"alright, i want to find the binding pocket. let's finds all amino acids near the clicked ligand."
+"nothing is loading. the screen is black. also users won't know PDB IDs. let's build a scrollable sidebar library with curated neural receptors so it's actually usable."
+"hosting app.py on render. fetch is failing because of CORS and http/https mixed content. how do i fix the URL mapping for production?"
+"can we add an ai agent? i want it to explain what each ligand does when i click it. it needs to pull the chem name from RCSB first."
+"hey, when my AI agent quota is out, or it otherwise fails to generate an AI summary, the rest of my data does not load. can we ensure (in both front and back end code) that we can state when there was an error generating AI summary, and still display the rest of the 
+necessary data?"
+
+this pretty accurately documents my overall development process.
+the main difference is that i wrote the majority of the code pertinent to the AI agent myself (calling it, adding card on html, etc)
